@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>crypto_utils_grad &#8212; COMPE 560:UDP-based chat application  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for crypto_utils_grad</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">Crypto.PublicKey</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Crypto.Cipher</span><span class="w"> </span><span class="kn">import</span> <span class="n">PKCS1_OAEP</span><span class="p">,</span> <span class="n">AES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Crypto.Random</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_random_bytes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Crypto.Util.Padding</span><span class="w"> </span><span class="kn">import</span> <span class="n">pad</span><span class="p">,</span> <span class="n">unpad</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hmac</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+
+<div class="viewcode-block" id="generate_rsa_keypair">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.generate_rsa_keypair">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_rsa_keypair</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a 2048-bit RSA key pair.</span>
+
+<span class="sd">    :return: (private_key_bytes, public_key_bytes) in PEM format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">RSA</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">export_key</span><span class="p">(),</span> <span class="n">key</span><span class="o">.</span><span class="n">publickey</span><span class="p">()</span><span class="o">.</span><span class="n">export_key</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="encrypt_with_rsa">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.encrypt_with_rsa">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">encrypt_with_rsa</span><span class="p">(</span><span class="n">public_key_bytes</span><span class="p">,</span> <span class="n">message_bytes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encrypt a message with an RSA public key using OAEP.</span>
+
+<span class="sd">    :param public_key_bytes: RSA public key bytes.</span>
+<span class="sd">    :param message_bytes: Plaintext bytes to encrypt.</span>
+<span class="sd">    :return: RSA-encrypted ciphertext bytes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pub_key</span> <span class="o">=</span> <span class="n">RSA</span><span class="o">.</span><span class="n">import_key</span><span class="p">(</span><span class="n">public_key_bytes</span><span class="p">)</span>
+    <span class="n">cipher</span> <span class="o">=</span> <span class="n">PKCS1_OAEP</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">pub_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">message_bytes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="decrypt_with_rsa">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.decrypt_with_rsa">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decrypt_with_rsa</span><span class="p">(</span><span class="n">private_key_bytes</span><span class="p">,</span> <span class="n">encrypted_bytes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decrypt an RSA ciphertext with the corresponding private key using OAEP.</span>
+
+<span class="sd">    :param private_key_bytes: RSA private key bytes.</span>
+<span class="sd">    :param encrypted_bytes: Ciphertext bytes to decrypt.</span>
+<span class="sd">    :return: Decrypted plaintext bytes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">priv_key</span> <span class="o">=</span> <span class="n">RSA</span><span class="o">.</span><span class="n">import_key</span><span class="p">(</span><span class="n">private_key_bytes</span><span class="p">)</span>
+    <span class="n">cipher</span> <span class="o">=</span> <span class="n">PKCS1_OAEP</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">priv_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cipher</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">encrypted_bytes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_aes_key">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.generate_aes_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_aes_key</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a random 128-bit AES key.</span>
+
+<span class="sd">    :return: 16-byte AES key.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_random_bytes</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="encrypt_with_aes">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.encrypt_with_aes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">encrypt_with_aes</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encrypt plaintext using AES-128-CBC and HMAC-SHA256 authentication.</span>
+
+<span class="sd">    Generates a random IV for each encryption. Returns a base64 string containing the HMAC tag, IV, and ciphertext.</span>
+
+<span class="sd">    :param aes_key: 16-byte AES key.</span>
+<span class="sd">    :param plaintext: Plaintext string to encrypt.</span>
+<span class="sd">    :return: Base64-encoded authenticated ciphertext.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">iv</span> <span class="o">=</span> <span class="n">get_random_bytes</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">cipher</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="p">)</span>
+    <span class="n">ciphertext</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">pad</span><span class="p">(</span><span class="n">plaintext</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">AES</span><span class="o">.</span><span class="n">block_size</span><span class="p">))</span>
+    <span class="n">enc_data</span> <span class="o">=</span> <span class="n">iv</span> <span class="o">+</span> <span class="n">ciphertext</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">enc_data</span><span class="p">,</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">tag</span> <span class="o">+</span> <span class="n">enc_data</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="decrypt_with_aes">
+<a class="viewcode-back" href="../api.html#crypto_utils_grad.decrypt_with_aes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decrypt_with_aes</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">b64_message</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decrypt a base64-encoded AES-128-CBC ciphertext with HMAC-SHA256 verification.</span>
+
+<span class="sd">    :param aes_key: 16-byte AES key.</span>
+<span class="sd">    :param b64_message: Base64 string with HMAC tag, IV, and ciphertext.</span>
+<span class="sd">    :return: Decrypted plaintext string.</span>
+<span class="sd">    :raises ValueError: If authentication fails or padding is invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">b64_message</span><span class="p">)</span>
+    <span class="n">tag</span><span class="p">,</span> <span class="n">enc_data</span> <span class="o">=</span> <span class="n">raw</span><span class="p">[:</span><span class="mi">32</span><span class="p">],</span> <span class="n">raw</span><span class="p">[</span><span class="mi">32</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">enc_data</span><span class="p">,</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;HMAC verification failed!&quot;</span><span class="p">)</span>
+    <span class="n">iv</span><span class="p">,</span> <span class="n">ciphertext</span> <span class="o">=</span> <span class="n">enc_data</span><span class="p">[:</span><span class="mi">16</span><span class="p">],</span> <span class="n">enc_data</span><span class="p">[</span><span class="mi">16</span><span class="p">:]</span>
+    <span class="n">cipher</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">aes_key</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unpad</span><span class="p">(</span><span class="n">cipher</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">),</span> <span class="n">AES</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">COMPE 560:UDP-based chat application</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation &amp; Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Krishna Gajera.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

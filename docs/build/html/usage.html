@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; COMPE 560:UDP-based chat application  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h1>
+<p>Run the server, then one or more clients to chat.</p>
+<ol class="arabic">
+<li><p><strong>Start the Server</strong>
+.. code-block:: bash</p>
+<blockquote>
+<div><p>python3 server_grad.py</p>
+</div></blockquote>
+<p>Expected log:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>2025-05-06 20:39:26,584 [INFO] Server listening on 0.0.0.0:12345
+</pre></div>
+</div>
+</li>
+<li><p><strong>Start a Client</strong>
+.. code-block:: bash</p>
+<blockquote>
+<div><p>python3 client_grad.py</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Enter your <strong>username</strong> when prompted.</p></li>
+<li><p>RSA keypair is generated and sent to server.</p></li>
+<li><p>AES session key is returned (RSA-encrypted) and stored.</p></li>
+<li><p><strong>Secure channel established</strong> and chat UI appears.</p></li>
+</ul>
+</li>
+<li><p><strong>Chat</strong>
+- Type your message at the prompt and press Enter.
+- Client shows <cite>[SENT]</cite>, then <cite>[DELIVERED]</cite> (or <cite>[FAILED]</cite> after retries).
+- Incoming messages from peers display as <cite>username: text</cite>.</p></li>
+</ol>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">COMPE 560:UDP-based chat application</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Krishna Gajera.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
